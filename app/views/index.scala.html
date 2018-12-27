@@ -1,0 +1,107 @@
+@(url: String, webJarsUtil: org.webjars.play.WebJarsUtil)
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    @Html(webJarsUtil.css("bootstrap.min.css"))
+    @Html(webJarsUtil.css("bootstrap-theme.min.css"))
+
+    <link rel="stylesheet" href="@routes.Assets.versioned("/stylesheets/main.css")" rel="stylesheet">
+    <link rel="icon" href="@routes.Assets.versioned("/images/favicon.png")">
+    <title>Chat Room</title>
+
+</head>
+
+<body>
+
+
+<div class="wrap">
+    <div class="container-fluid">
+        <div>
+            <h1 class="">Chat Room</h1>
+            <h2>Logged user: <span style="color: green" id="username"></span></h2>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <ul id="messages" class="list-unstyled">
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer navbar-fixed-bottom">
+    <div class="row">
+        <div class="col-xs-8 col-sm-9">
+            <input id="message" placeholder="Type Here" type="text"
+                   autofocus
+                   autocomplete="off" spellcheck="false" autocorrect="off"
+                   class="form-control input-lg"/>
+        </div>
+
+        <div class="col-xs-4 col-sm-3">
+            <button id="send" type="submit" class="btn btn-primary btn-lg btn-block">Send</button>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+<script
+        src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+<script
+        src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+@Html(webJarsUtil.script("jquery.min.js"))
+
+<script language="javascript">
+                var $messages = $("#messages"),
+                        $send = $("#send"),
+                        $message = $("#message"),
+                        connection = new WebSocket("@url");
+                var name = prompt("Please enter your name");
+
+                document.getElementById("username").innerHTML = name;
+
+
+                $send.prop("disabled", true);
+
+                var send = function () {
+                    var text = $message.val();
+                    $message.val("");
+                    connection.send(name+": "+text);
+                    document.getElementById("messages").scrollTop = 9999999;
+                };
+
+                connection.onopen = function () {
+                    $send.prop("disabled", false);
+                    $send.on('click', send);
+                    $message.keypress(function(event){
+                        var keycode = (event.keyCode ? event.keyCode : event.which);
+                        if(keycode == '13'){
+                            send();
+                        }
+                    });
+                };
+                connection.onerror = function (error) {
+                    console.log('WebSocket Error ', error);
+                };
+                connection.onmessage = function (event) {
+                    $messages.append($("<li style='font-size: 1.5em'>" + event.data + "</li>"));
+                    document.getElementById("messages").scrollTop = 9999999;
+                };
+
+</script>
+</body>
+
+</html>
